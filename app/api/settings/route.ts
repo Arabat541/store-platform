@@ -7,6 +7,7 @@ const ALLOWED_KEYS = [
   "tax_rate",
   "contact_email",
   "contact_phone",
+  "contact_whatsapp",
   "contact_address",
 ];
 

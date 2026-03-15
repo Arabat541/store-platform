@@ -13,6 +13,7 @@ export default function ContactPage() {
   const [contactInfo, setContactInfo] = useState({
     address: "Abidjan, Côte d'Ivoire",
     phone: "+225 00 000 000",
+    whatsapp: "+225 00 000 000",
     email: "contact@lalumieresoit.com",
   });
 
@@ -20,6 +21,7 @@ export default function ContactPage() {
     fetch("/api/settings").then(r => r.json()).then((data) => {
       if (data.contact_address) setContactInfo(c => ({ ...c, address: data.contact_address }));
       if (data.contact_phone) setContactInfo(c => ({ ...c, phone: data.contact_phone }));
+      if (data.contact_whatsapp) setContactInfo(c => ({ ...c, whatsapp: data.contact_whatsapp }));
       if (data.contact_email) setContactInfo(c => ({ ...c, email: data.contact_email }));
     });
   }, []);
@@ -72,6 +74,16 @@ export default function ContactPage() {
               <div>
                 <h3 className="font-semibold text-slate-900">Téléphone</h3>
                 <p className="text-sm text-slate-600 mt-1">{contactInfo.phone}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-green-600">chat</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900">WhatsApp</h3>
+                <a href={`https://wa.me/${contactInfo.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-sm text-green-600 mt-1 hover:underline">{contactInfo.whatsapp}</a>
               </div>
             </div>
 

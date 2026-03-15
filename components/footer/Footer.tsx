@@ -3,14 +3,13 @@ import { prisma } from "@/lib/prisma";
 
 export default async function Footer() {
   const rows = await prisma.setting.findMany({
-    where: { key: { in: ["contact_email", "contact_phone", "contact_address"] } },
+    where: { key: { in: ["contact_email", "contact_phone", "contact_whatsapp", "contact_address"] } },
   });
   const settings: Record<string, string> = {};
   for (const r of rows) settings[r.key] = r.value;
 
   const email = settings.contact_email || "contact@lalumieresoit.com";
-  const phone = settings.contact_phone || "+225 00 000 000";
-  const address = settings.contact_address || "Abidjan, Côte d'Ivoire";
+  const phone = settings.contact_phone || "+225 00 000 000";  const whatsapp = settings.contact_whatsapp || "+225 00 000 000";  const address = settings.contact_address || "Abidjan, Côte d'Ivoire";
 
   return (
     <footer className="bg-white border-t border-primary/10 mt-12 py-12">
@@ -79,6 +78,12 @@ export default async function Footer() {
               <li className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-base">call</span>
                 {phone}
+              </li>
+              <li className="flex items-center gap-2">
+                <a href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-green-600">
+                  <span className="material-symbols-outlined text-base">chat</span>
+                  WhatsApp
+                </a>
               </li>
               <li className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-base">location_on</span>

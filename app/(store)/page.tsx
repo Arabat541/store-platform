@@ -44,7 +44,7 @@ export default async function HomePage() {
         <div className="relative z-20 px-8 md:px-16 max-w-2xl space-y-6">
           <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/30 backdrop-blur-md px-3 py-1 rounded-full">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-primary text-xs font-bold uppercase tracking-wider">Nouveauté 2024</span>
+            <span className="text-primary text-xs font-bold uppercase tracking-wider">Nouveauté {new Date().getFullYear()}</span>
           </div>
           <h2 className="text-4xl md:text-6xl font-black text-white leading-tight">
             La Tech Nouvelle <br />

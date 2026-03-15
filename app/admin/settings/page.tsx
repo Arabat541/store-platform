@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function AdminSettingsPage() {
   const [store, setStore] = useState({ store_name: "La Lumière Soit", currency: "XOF", tax_rate: "0" });
-  const [contact, setContact] = useState({ contact_email: "contact@lalumieresoit.com", contact_phone: "+225 00 000 000", contact_address: "Avenue de la République, Abidjan, Côte d'Ivoire" });
+  const [contact, setContact] = useState({ contact_email: "contact@lalumieresoit.com", contact_phone: "+225 00 000 000", contact_whatsapp: "+225 00 000 000", contact_address: "Avenue de la République, Abidjan, Côte d'Ivoire" });
   const [saving, setSaving] = useState<string | null>(null);
 
   useEffect(() => {
@@ -14,6 +14,7 @@ export default function AdminSettingsPage() {
       if (data.tax_rate) setStore(s => ({ ...s, tax_rate: data.tax_rate }));
       if (data.contact_email) setContact(c => ({ ...c, contact_email: data.contact_email }));
       if (data.contact_phone) setContact(c => ({ ...c, contact_phone: data.contact_phone }));
+      if (data.contact_whatsapp) setContact(c => ({ ...c, contact_whatsapp: data.contact_whatsapp }));
       if (data.contact_address) setContact(c => ({ ...c, contact_address: data.contact_address }));
     });
   }, []);
@@ -70,6 +71,10 @@ export default function AdminSettingsPage() {
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Téléphone</label>
               <input value={contact.contact_phone} onChange={e => setContact(c => ({ ...c, contact_phone: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">WhatsApp</label>
+              <input value={contact.contact_whatsapp} onChange={e => setContact(c => ({ ...c, contact_whatsapp: e.target.value }))} placeholder="+225 00 000 000" className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Adresse</label>

@@ -8,6 +8,7 @@ import { useAuthStore } from "@/lib/store/auth";
 
 const navigation = [
   { name: "Tableau de bord", href: "/admin/dashboard", icon: "dashboard" },
+  { name: "Vente en boutique", href: "/admin/pos", icon: "point_of_sale" },
   { name: "Produits", href: "/admin/products", icon: "inventory_2" },
   { name: "Commandes", href: "/admin/orders", icon: "shopping_bag" },
   { name: "Clients", href: "/admin/customers", icon: "group" },
