@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatCurrency } from "@/lib/utils";
 
 interface Product {
@@ -17,6 +17,25 @@ interface CartItem {
   quantity: number;
 }
 
+interface OrderData {
+  orderNumber: string;
+  total: number;
+  subtotal: number;
+  tax: number;
+  paymentMethod: string;
+  createdAt: string;
+  customer: { firstName: string; lastName: string; phone: string | null };
+  items: { quantity: number; price: number; total: number; product: { name: string } }[];
+}
+
+interface StoreSettings {
+  store_name?: string;
+  contact_phone?: string;
+  contact_address?: string;
+  contact_email?: string;
+  contact_whatsapp?: string;
+}
+
 export default function AdminPOSPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
@@ -25,12 +44,17 @@ export default function AdminPOSPage() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [processing, setProcessing] = useState(false);
-  const [receipt, setReceipt] = useState<{ orderNumber: string; total: number } | null>(null);
+  const [receipt, setReceipt] = useState<OrderData | null>(null);
+  const [storeSettings, setStoreSettings] = useState<StoreSettings>({});
+  const receiptRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/products?limit=500")
       .then((r) => r.json())
       .then((d) => setProducts(d.products || []));
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((d) => setStoreSettings(d));
   }, []);
 
   const filtered = products.filter(
@@ -101,7 +125,21 @@ export default function AdminPOSPage() {
 
     if (res.ok) {
       const order = await res.json();
-      setReceipt({ orderNumber: order.orderNumber, total: Number(order.total) });
+      setReceipt({
+        orderNumber: order.orderNumber,
+        total: Number(order.total),
+        subtotal: Number(order.subtotal),
+        tax: Number(order.tax),
+        paymentMethod: order.paymentMethod,
+        createdAt: order.createdAt,
+        customer: order.customer,
+        items: order.items.map((i: { quantity: number; price: string | number; total: string | number; product: { name: string } }) => ({
+          quantity: i.quantity,
+          price: Number(i.price),
+          total: Number(i.total),
+          product: i.product,
+        })),
+      });
       setCart([]);
       setCustomerName("");
       setCustomerPhone("");
@@ -113,24 +151,156 @@ export default function AdminPOSPage() {
     setProcessing(false);
   }
 
+  function printReceipt() {
+    if (!receiptRef.current) return;
+    const printWindow = window.open("", "_blank", "width=350,height=600");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Reçu</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Courier New', monospace; font-size: 12px; padding: 10px; width: 300px; }
+            .center { text-align: center; }
+            .bold { font-weight: bold; }
+            .line { border-top: 1px dashed #000; margin: 8px 0; }
+            .row { display: flex; justify-content: space-between; margin: 2px 0; }
+            .item-name { margin-bottom: 1px; }
+            h1 { font-size: 16px; margin-bottom: 4px; }
+            h2 { font-size: 13px; margin-bottom: 2px; }
+            .total-row { font-size: 14px; font-weight: bold; }
+            @media print { body { width: 100%; } }
+          </style>
+        </head>
+        <body>${receiptRef.current.innerHTML}</body>
+        <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>
+      </html>
+    `);
+    printWindow.document.close();
+  }
+
   function newSale() {
     setReceipt(null);
   }
 
+  const paymentLabels: Record<string, string> = {
+    cash: "Espèces",
+    mobile_money: "Mobile Money",
+    card: "Carte bancaire",
+  };
+
   if (receipt) {
+    const receiptDate = new Date(receipt.createdAt);
+    const storeName = storeSettings.store_name || "La Lumière Soit";
+
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center max-w-md w-full">
-          <span className="material-symbols-outlined text-6xl text-green-500 mb-4 block">check_circle</span>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Vente enregistrée !</h2>
-          <p className="text-slate-500 mb-4">Commande #{receipt.orderNumber}</p>
-          <p className="text-3xl font-bold text-slate-900 mb-6">{formatCurrency(receipt.total)}</p>
-          <button
-            onClick={newSale}
-            className="bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors"
-          >
-            Nouvelle vente
-          </button>
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 max-w-lg w-full">
+          {/* Printable receipt content (hidden visually, used for printing) */}
+          <div ref={receiptRef} className="hidden">
+            <div className="center">
+              <h1>{storeName}</h1>
+              {storeSettings.contact_address && <p>{storeSettings.contact_address}</p>}
+              {storeSettings.contact_phone && <p>Tél: {storeSettings.contact_phone}</p>}
+            </div>
+            <div className="line"></div>
+            <div className="row"><span>Reçu N°:</span><span className="bold">{receipt.orderNumber}</span></div>
+            <div className="row"><span>Date:</span><span>{receiptDate.toLocaleDateString("fr-FR")} {receiptDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span></div>
+            {receipt.customer.firstName !== "Client" && (
+              <div className="row"><span>Client:</span><span>{receipt.customer.firstName} {receipt.customer.lastName}</span></div>
+            )}
+            {receipt.customer.phone && <div className="row"><span>Tél:</span><span>{receipt.customer.phone}</span></div>}
+            <div className="row"><span>Paiement:</span><span>{paymentLabels[receipt.paymentMethod] || receipt.paymentMethod}</span></div>
+            <div className="line"></div>
+            {receipt.items.map((item, idx) => (
+              <div key={idx}>
+                <div className="item-name bold">{item.product.name}</div>
+                <div className="row"><span>{item.quantity} x {formatCurrency(item.price)}</span><span>{formatCurrency(item.total)}</span></div>
+              </div>
+            ))}
+            <div className="line"></div>
+            <div className="row"><span>Sous-total:</span><span>{formatCurrency(receipt.subtotal)}</span></div>
+            {receipt.tax > 0 && <div className="row"><span>TVA:</span><span>{formatCurrency(receipt.tax)}</span></div>}
+            <div className="line"></div>
+            <div className="row total-row"><span>TOTAL:</span><span>{formatCurrency(receipt.total)}</span></div>
+            <div className="line"></div>
+            <div className="center" style={{ marginTop: "8px" }}>
+              <p>Merci pour votre achat !</p>
+              {storeSettings.contact_whatsapp && <p>WhatsApp: {storeSettings.contact_whatsapp}</p>}
+            </div>
+          </div>
+
+          {/* On-screen receipt preview */}
+          <div className="text-center mb-6">
+            <span className="material-symbols-outlined text-6xl text-green-500 mb-2 block">check_circle</span>
+            <h2 className="text-2xl font-bold text-slate-900">Vente enregistrée !</h2>
+            <p className="text-slate-500">Commande #{receipt.orderNumber}</p>
+          </div>
+
+          <div className="bg-slate-50 rounded-xl p-4 mb-4 space-y-2 text-sm">
+            <div className="flex justify-between text-slate-600">
+              <span>Date</span>
+              <span>{receiptDate.toLocaleDateString("fr-FR")} à {receiptDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>
+            </div>
+            {receipt.customer.firstName !== "Client" && (
+              <div className="flex justify-between text-slate-600">
+                <span>Client</span>
+                <span>{receipt.customer.firstName} {receipt.customer.lastName}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-slate-600">
+              <span>Paiement</span>
+              <span>{paymentLabels[receipt.paymentMethod] || receipt.paymentMethod}</span>
+            </div>
+          </div>
+
+          <div className="border border-slate-200 rounded-xl overflow-hidden mb-4">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="text-left px-3 py-2 text-slate-500 font-medium">Article</th>
+                  <th className="text-center px-3 py-2 text-slate-500 font-medium">Qté</th>
+                  <th className="text-right px-3 py-2 text-slate-500 font-medium">Prix</th>
+                  <th className="text-right px-3 py-2 text-slate-500 font-medium">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {receipt.items.map((item, idx) => (
+                  <tr key={idx} className="border-t border-slate-100">
+                    <td className="px-3 py-2 text-slate-900">{item.product.name}</td>
+                    <td className="px-3 py-2 text-center text-slate-600">{item.quantity}</td>
+                    <td className="px-3 py-2 text-right text-slate-600">{formatCurrency(item.price)}</td>
+                    <td className="px-3 py-2 text-right font-medium text-slate-900">{formatCurrency(item.total)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="bg-primary/5 rounded-xl p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <span className="text-lg font-bold text-slate-900">Total</span>
+              <span className="text-2xl font-black text-primary">{formatCurrency(receipt.total)}</span>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={printReceipt}
+              className="flex-1 bg-slate-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined text-lg">print</span>
+              Imprimer le reçu
+            </button>
+            <button
+              onClick={newSale}
+              className="flex-1 bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined text-lg">add_shopping_cart</span>
+              Nouvelle vente
+            </button>
+          </div>
         </div>
       </div>
     );
