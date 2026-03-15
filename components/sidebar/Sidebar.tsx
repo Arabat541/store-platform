@@ -14,6 +14,7 @@ const navigation = [
   { name: "Clients", href: "/admin/customers", icon: "group" },
   { name: "Inventaire", href: "/admin/inventory", icon: "warehouse" },
   { name: "Fournisseurs", href: "/admin/suppliers", icon: "local_shipping" },
+  { name: "Employés", href: "/admin/employees", icon: "badge" },
   { name: "Rapports", href: "/admin/reports", icon: "bar_chart" },
   { name: "Paramètres", href: "/admin/settings", icon: "settings" },
 ];

@@ -10,6 +10,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSent, setResetSent] = useState(false);
+  const [resetToken, setResetToken] = useState("");
+  const [resetUid, setResetUid] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [resetStep, setResetStep] = useState<"email" | "token" | "done">("email");
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
 
@@ -36,7 +43,54 @@ export default function LoginPage() {
       document.cookie = `auth-token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict`;
       router.push("/admin/dashboard");
     } catch {
-      setError("Une erreur est survenue. Please try again.");
+      setError("Une erreur est survenue. Réessayez.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail }),
+      });
+      const data = await res.json();
+      if (data.resetToken) {
+        setResetToken(data.resetToken);
+        setResetUid(data.resetUrl?.split("uid=")[1] || "");
+        setResetStep("token");
+      }
+      setResetSent(true);
+    } catch {
+      setError("Une erreur est survenue.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: resetToken, newPassword, uid: resetUid }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResetStep("done");
+      } else {
+        setError(data.error || "Erreur");
+      }
+    } catch {
+      setError("Une erreur est survenue.");
     } finally {
       setLoading(false);
     }
@@ -117,6 +171,98 @@ export default function LoginPage() {
             {!loading && <span className="material-symbols-outlined text-lg">arrow_forward</span>}
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => { setForgotMode(true); setResetStep("email"); setResetSent(false); setError(""); }}
+            className="text-sm text-primary hover:underline"
+          >
+            Mot de passe oublié ?
+          </button>
+        </div>
+
+        {/* Forgot Password Modal */}
+        {forgotMode && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6">
+              {resetStep === "done" ? (
+                <div className="text-center py-4">
+                  <span className="material-symbols-outlined text-5xl text-green-500 mb-3 block">check_circle</span>
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">Mot de passe réinitialisé !</h3>
+                  <p className="text-sm text-slate-500 mb-4">Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.</p>
+                  <button onClick={() => setForgotMode(false)} className="bg-primary text-white px-6 py-2 rounded-lg text-sm hover:bg-primary/90">
+                    Retour à la connexion
+                  </button>
+                </div>
+              ) : resetStep === "token" ? (
+                <>
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">Nouveau mot de passe</h3>
+                  <p className="text-sm text-slate-500 mb-4">Entrez votre nouveau mot de passe ci-dessous.</p>
+                  {error && (
+                    <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700 text-sm">
+                      <span className="material-symbols-outlined text-lg">error</span>
+                      {error}
+                    </div>
+                  )}
+                  <form onSubmit={handleResetPassword} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Nouveau mot de passe</label>
+                      <input
+                        type="password"
+                        required
+                        minLength={6}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                        placeholder="Minimum 6 caractères"
+                      />
+                    </div>
+                    <div className="flex justify-end gap-3">
+                      <button type="button" onClick={() => setForgotMode(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">
+                        Annuler
+                      </button>
+                      <button type="submit" disabled={loading} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 text-sm disabled:opacity-50">
+                        {loading ? "..." : "Réinitialiser"}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">Mot de passe oublié</h3>
+                  <p className="text-sm text-slate-500 mb-4">Entrez votre adresse email pour réinitialiser votre mot de passe.</p>
+                  {error && (
+                    <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700 text-sm">
+                      <span className="material-symbols-outlined text-lg">error</span>
+                      {error}
+                    </div>
+                  )}
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                      <input
+                        type="email"
+                        required
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                        placeholder="votre@email.com"
+                      />
+                    </div>
+                    <div className="flex justify-end gap-3">
+                      <button type="button" onClick={() => setForgotMode(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">
+                        Annuler
+                      </button>
+                      <button type="submit" disabled={loading} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 text-sm disabled:opacity-50">
+                        {loading ? "..." : "Réinitialiser"}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Footer Branding */}
         <div className="mt-8 border-t border-slate-100 pt-6 text-center">
