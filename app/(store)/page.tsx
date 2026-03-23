@@ -12,20 +12,28 @@ const categoryIcons: Record<string, string> = {
 };
 
 async function getFeaturedProducts() {
-  const products = await prisma.product.findMany({
-    where: { active: true, featured: true },
-    include: { category: { select: { id: true, name: true, slug: true } } },
-    take: 8,
-    orderBy: { createdAt: "desc" },
-  });
-  return products;
+  try {
+    const products = await prisma.product.findMany({
+      where: { active: true, featured: true },
+      include: { category: { select: { id: true, name: true, slug: true } } },
+      take: 8,
+      orderBy: { createdAt: "desc" },
+    });
+    return products;
+  } catch {
+    return [];
+  }
 }
 
 async function getCategories() {
-  return prisma.category.findMany({
-    include: { _count: { select: { products: true } } },
-    orderBy: { name: "asc" },
-  });
+  try {
+    return await prisma.category.findMany({
+      include: { _count: { select: { products: true } } },
+      orderBy: { name: "asc" },
+    });
+  } catch {
+    return [];
+  }
 }
 
 export default async function HomePage() {

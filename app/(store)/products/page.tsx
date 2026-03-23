@@ -24,20 +24,28 @@ export default async function ProductsPage({ searchParams }: Props) {
     ];
   }
 
-  const [products, total, categories] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      include: { category: { select: { id: true, name: true, slug: true } } },
-      skip: (page - 1) * limit,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.product.count({ where }),
-    prisma.category.findMany({
-      include: { _count: { select: { products: true } } },
-      orderBy: { name: "asc" },
-    }),
-  ]);
+  let products: Awaited<ReturnType<typeof prisma.product.findMany>> = [];
+  let total = 0;
+  let categories: Awaited<ReturnType<typeof prisma.category.findMany>> = [];
+
+  try {
+    [products, total, categories] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        include: { category: { select: { id: true, name: true, slug: true } } },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.product.count({ where }),
+      prisma.category.findMany({
+        include: { _count: { select: { products: true } } },
+        orderBy: { name: "asc" },
+      }),
+    ]);
+  } catch {
+    // DB unavailable - show empty state
+  }
 
   const pages = Math.ceil(total / limit);
 
