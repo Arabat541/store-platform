@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   if (errorParam) {
     return NextResponse.redirect(
-      new URL("/auth?error=facebook_denied", req.url)
+      new URL("/login?error=facebook_denied", req.url)
     );
   }
 
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
 
     const tokens = await tokenRes.json();
     if (!tokens.access_token) {
-      return NextResponse.redirect(new URL("/auth?error=facebook_token", req.url));
+      return NextResponse.redirect(new URL("/login?error=facebook_token", req.url));
     }
 
     // Step 3: Get user info from Facebook
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
 
     const fbUser = await userRes.json();
     if (!fbUser.email) {
-      return NextResponse.redirect(new URL("/auth?error=facebook_email", req.url));
+      return NextResponse.redirect(new URL("/login?error=facebook_email", req.url));
     }
 
     // Step 4: Find or create customer
@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (!customer.active) {
-      return NextResponse.redirect(new URL("/auth?error=account_disabled", req.url));
+      return NextResponse.redirect(new URL("/login?error=account_disabled", req.url));
     }
 
     // Step 5: Generate JWT and redirect
@@ -120,6 +120,6 @@ export async function GET(req: NextRequest) {
     });
     return response;
   } catch {
-    return NextResponse.redirect(new URL("/auth?error=facebook_error", req.url));
+    return NextResponse.redirect(new URL("/login?error=facebook_error", req.url));
   }
 }

@@ -10,7 +10,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 const GOOGLE_REDIRECT_URI = BASE_URL + "/api/auth/customer/google";
 
 function redirectToAuth(error: string) {
-  return NextResponse.redirect(new URL(`/auth?error=${error}`, BASE_URL));
+  return NextResponse.redirect(new URL(`/login?error=${error}`, BASE_URL));
 }
 
 // GET: Handle Google OAuth callback

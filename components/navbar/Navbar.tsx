@@ -130,7 +130,7 @@ export default function Navbar() {
               </div>
             ) : (
               <Link
-                href="/auth"
+                href="/login"
                 className="bg-primary text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hidden sm:block"
               >
                 Connexion
@@ -194,7 +194,7 @@ export default function Navbar() {
               </>
             ) : (
               <Link
-                href="/auth"
+                href="/login"
                 className="block text-center bg-primary text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all mt-2"
                 onClick={() => setMobileOpen(false)}
               >

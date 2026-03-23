@@ -10,9 +10,7 @@ export function middleware(request: NextRequest) {
       request.headers.get("authorization")?.replace("Bearer ", "");
 
     if (!token) {
-      // Allow access in development; redirect to login in production
-      // Uncomment the following for production:
-      // return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(new URL("/login?tab=admin", request.url));
     }
   }
 
@@ -20,7 +18,7 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith("/account")) {
     const token = request.cookies.get("customer-token")?.value;
     if (!token) {
-      return NextResponse.redirect(new URL("/auth", request.url));
+      return NextResponse.redirect(new URL("/login", request.url));
     }
   }
 

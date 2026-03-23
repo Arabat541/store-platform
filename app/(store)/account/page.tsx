@@ -79,7 +79,7 @@ export default function AccountPage() {
   useEffect(() => {
     if (!_hasHydrated) return;
     if (!isAuthenticated()) {
-      router.push("/auth");
+      router.push("/login");
       return;
     }
     fetchProfile();
@@ -93,7 +93,7 @@ export default function AccountPage() {
       });
       if (!res.ok) {
         logout();
-        router.push("/auth");
+        router.push("/login");
         return;
       }
       const data = await res.json();
@@ -113,7 +113,7 @@ export default function AccountPage() {
       });
     } catch {
       logout();
-      router.push("/auth");
+      router.push("/login");
     } finally {
       setLoading(false);
     }

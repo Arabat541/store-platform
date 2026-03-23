@@ -28,10 +28,10 @@ function CallbackHandler() {
           router.replace("/account");
         }, 100);
       } catch {
-        router.replace("/auth?error=callback_error");
+        router.replace("/login?error=callback_error");
       }
     } else {
-      router.replace("/auth?error=no_token");
+      router.replace("/login?error=no_token");
     }
   }, [searchParams, router, setAuth]);
 
