@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useCartStore } from "@/lib/store/cart";
+import { useCustomerAuthStore } from "@/lib/store/customer-auth";
 import { useRouter } from "next/navigation";
 
 const categories = [
@@ -16,9 +17,22 @@ const categories = [
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
   const totalItems = useCartStore((s) => s.totalItems());
   const toggleCart = useCartStore((s) => s.toggleCart);
+  const { customer, isAuthenticated, logout } = useCustomerAuthStore();
   const router = useRouter();
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,12 +92,50 @@ export default function Navbar() {
                 </span>
               )}
             </button>
-            <Link
-              href="/login"
-              className="bg-primary text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hidden sm:block"
-            >
-              Login
-            </Link>
+            {isAuthenticated() && customer ? (
+              <div className="relative hidden sm:block" ref={profileRef}>
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center gap-2 p-1.5 hover:bg-primary/10 rounded-full transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-sm font-bold text-primary">
+                      {customer.firstName[0]}{customer.lastName[0]}
+                    </span>
+                  </div>
+                </button>
+                {profileOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl border border-slate-200 shadow-xl py-2 z-50">
+                    <div className="px-4 py-2 border-b border-slate-100">
+                      <p className="text-sm font-semibold text-slate-900">{customer.firstName} {customer.lastName}</p>
+                      <p className="text-xs text-slate-500 truncate">{customer.email}</p>
+                    </div>
+                    <Link
+                      href="/account"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                      onClick={() => setProfileOpen(false)}
+                    >
+                      <span className="material-symbols-outlined text-lg">person</span>
+                      Mon compte
+                    </Link>
+                    <button
+                      onClick={() => { logout(); setProfileOpen(false); router.push("/"); }}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
+                    >
+                      <span className="material-symbols-outlined text-lg">logout</span>
+                      Déconnexion
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/auth"
+                className="bg-primary text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hidden sm:block"
+              >
+                Connexion
+              </Link>
+            )}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="lg:hidden p-2 hover:bg-primary/10 rounded-full transition-colors"
@@ -122,13 +174,33 @@ export default function Navbar() {
                 {cat.name}
               </Link>
             ))}
-            <Link
-              href="/login"
-              className="block text-center bg-primary text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all mt-2"
-              onClick={() => setMobileOpen(false)}
-            >
-              Login
-            </Link>
+            {isAuthenticated() && customer ? (
+              <>
+                <Link
+                  href="/account"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <span className="material-symbols-outlined text-lg">person</span>
+                  Mon compte
+                </Link>
+                <button
+                  onClick={() => { logout(); setMobileOpen(false); router.push("/"); }}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors w-full text-left"
+                >
+                  <span className="material-symbols-outlined text-lg">logout</span>
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/auth"
+                className="block text-center bg-primary text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-primary/90 transition-all mt-2"
+                onClick={() => setMobileOpen(false)}
+              >
+                Connexion
+              </Link>
+            )}
           </div>
         )}
       </div>

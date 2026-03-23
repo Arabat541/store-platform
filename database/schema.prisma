@@ -62,18 +62,29 @@ model Product {
 }
 
 model Customer {
-  id        Int      @id @default(autoincrement())
-  firstName String   @map("first_name")
-  lastName  String   @map("last_name")
-  email     String   @unique
-  phone     String?
-  address   String?  @db.Text
-  city      String?
-  country   String?  @default("CD")
-  notes     String?  @db.Text
-  orders    Order[]
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id         Int      @id @default(autoincrement())
+  firstName  String   @map("first_name")
+  lastName   String   @map("last_name")
+  email      String   @unique
+  password   String?
+  provider   String?  @default("email")
+  providerId String?  @map("provider_id")
+  avatar     String?
+  phone      String?
+  address    String?  @db.Text
+  city       String?
+  country    String?  @default("CD")
+  dateOfBirth DateTime? @map("date_of_birth")
+  gender     String?
+  idType     String?  @map("id_type")
+  idNumber   String?  @map("id_number")
+  idImageFront String? @map("id_image_front")
+  idImageBack  String? @map("id_image_back")
+  active     Boolean  @default(true)
+  notes      String?  @db.Text
+  orders     Order[]
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@map("customers")
 }

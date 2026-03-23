@@ -9,8 +9,6 @@ export function middleware(request: NextRequest) {
       request.cookies.get("auth-token")?.value ||
       request.headers.get("authorization")?.replace("Bearer ", "");
 
-    // For now, allow access (implement full auth check via API in production)
-    // In production, verify the JWT token here
     if (!token) {
       // Allow access in development; redirect to login in production
       // Uncomment the following for production:
@@ -18,9 +16,17 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // Protect customer account routes
+  if (pathname.startsWith("/account")) {
+    const token = request.cookies.get("customer-token")?.value;
+    if (!token) {
+      return NextResponse.redirect(new URL("/auth", request.url));
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/account/:path*"],
 };
