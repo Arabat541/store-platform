@@ -26,7 +26,8 @@ export default async function ProductsPage({ searchParams }: Props) {
 
   let products: Awaited<ReturnType<typeof prisma.product.findMany>> = [];
   let total = 0;
-  let categories: Awaited<ReturnType<typeof prisma.category.findMany>> = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let categories: any[] = [];
 
   try {
     [products, total, categories] = await Promise.all([
