@@ -2,7 +2,6 @@ import { sign, verify, JwtPayload, SignOptions } from "jsonwebtoken";
 import { hash, compare } from "bcryptjs";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback-dev-secret";
-const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || "7d").replace(/"/g, "");
 
 export interface TokenPayload extends JwtPayload {
   userId: number;
@@ -26,8 +25,7 @@ export function generateToken(payload: {
   email: string;
   role: string;
 }): string {
-  const options: SignOptions = { expiresIn: JWT_EXPIRES_IN } as SignOptions;
-  return sign(payload, JWT_SECRET, options);
+  return sign(payload, JWT_SECRET, { expiresIn: "7d" });
 }
 
 export function verifyToken(token: string): TokenPayload {
