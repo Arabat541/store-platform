@@ -123,7 +123,7 @@ export default async function ProductsPage({ searchParams }: Props) {
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((product: { id: number; name: string; slug: string; price: unknown; comparePrice: unknown; images: unknown; stock: number; brand: string | null; category: { name: string; slug: string } | null }) => (
+                {products.map((product: any) => (
                   <ProductCard
                     key={product.id}
                     id={product.id}
