@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAdminUser, unauthorized } from "@/lib/auth/api-guard";
 
 export async function GET(req: NextRequest) {
   try {
@@ -57,6 +58,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!getAdminUser(req)) return unauthorized();
   try {
     const data = await req.json();
 

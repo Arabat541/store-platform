@@ -5,7 +5,8 @@ import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, newPassword, token } = await req.json();
+    const body = await req.json();
+    const { email, newPassword, token, uid } = body;
 
     // Step 1: Request reset - generate token
     if (email && !newPassword) {
@@ -24,20 +25,23 @@ export async function POST(req: NextRequest) {
         create: { key: `reset_${user.id}`, value: JSON.stringify({ token: resetToken, expiry }) },
       });
 
-      // In production, send email. For now, return the token for admin use.
+      // In production, send email with the reset link
+      // For now, token is stored server-side only
       return NextResponse.json({
         message: "Si cet email existe, un lien de réinitialisation a été envoyé.",
-        // In dev mode only:
-        resetToken,
-        resetUrl: `/login?reset=${resetToken}&uid=${user.id}`,
       });
     }
 
     // Step 2: Reset password with token
     if (token && newPassword) {
-      const { uid } = await req.json().catch(() => ({ uid: null }));
-      const searchParams = new URL(req.url).searchParams;
-      const userId = uid || searchParams.get("uid");
+      if (newPassword.length < 8) {
+        return NextResponse.json(
+          { error: "Le mot de passe doit contenir au moins 8 caractères" },
+          { status: 400 }
+        );
+      }
+
+      const userId = uid;
 
       if (!userId) {
         return NextResponse.json({ error: "Lien invalide" }, { status: 400 });
@@ -49,7 +53,11 @@ export async function POST(req: NextRequest) {
       }
 
       const data = JSON.parse(stored.value);
-      if (data.token !== token || new Date(data.expiry) < new Date()) {
+      const tokenMatch = crypto.timingSafeEqual(
+        Buffer.from(data.token, "utf8"),
+        Buffer.from(token, "utf8")
+      );
+      if (!tokenMatch || new Date(data.expiry) < new Date()) {
         return NextResponse.json({ error: "Lien expiré ou invalide" }, { status: 400 });
       }
 

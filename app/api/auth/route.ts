@@ -14,6 +14,13 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      if (password.length < 8) {
+        return NextResponse.json(
+          { error: "Le mot de passe doit contenir au moins 8 caractères" },
+          { status: 400 }
+        );
+      }
+
       const existing = await prisma.user.findUnique({ where: { email } });
       if (existing) {
         return NextResponse.json(
@@ -45,27 +52,23 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      console.log("[AUTH] Login attempt for:", email);
+      console.log("[AUTH] Login attempt");
       const user = await prisma.user.findUnique({ where: { email } });
       if (!user || !user.active) {
-        console.log("[AUTH] User not found or inactive:", email);
         return NextResponse.json(
           { error: "Invalid credentials" },
           { status: 401 }
         );
       }
 
-      console.log("[AUTH] User found, verifying password...");
       const valid = await verifyPassword(password, user.password);
       if (!valid) {
-        console.log("[AUTH] Password mismatch for:", email);
         return NextResponse.json(
           { error: "Invalid credentials" },
           { status: 401 }
         );
       }
 
-      console.log("[AUTH] Login success for:", email);
       const token = generateToken({
         userId: user.id,
         email: user.email,

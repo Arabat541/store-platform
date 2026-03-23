@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateOrderNumber } from "@/lib/utils";
+import { getAdminUser, unauthorized } from "@/lib/auth/api-guard";
 
 export async function GET(req: NextRequest) {
+  if (!getAdminUser(req)) return unauthorized();
   try {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
@@ -60,6 +62,16 @@ export async function POST(req: NextRequest) {
       productId: number;
       quantity: number;
     }>;
+
+    // Validate quantities
+    for (const item of itemsData) {
+      if (!item.productId || !item.quantity || item.quantity <= 0 || !Number.isInteger(item.quantity)) {
+        return NextResponse.json(
+          { error: "Quantité invalide" },
+          { status: 400 }
+        );
+      }
+    }
 
     const products = await prisma.product.findMany({
       where: { id: { in: itemsData.map((i) => i.productId) } },

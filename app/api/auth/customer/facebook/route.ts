@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateToken } from "@/lib/auth";
+import { randomBytes } from "crypto";
 
 const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID!;
 const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET!;
@@ -19,16 +20,33 @@ export async function GET(req: NextRequest) {
   }
 
   if (!code) {
-    // Step 1: Redirect to Facebook Login dialog
+    // Step 1: Redirect to Facebook Login dialog with state for CSRF protection
+    const state = randomBytes(32).toString("hex");
     const params = new URLSearchParams({
       client_id: FACEBOOK_APP_ID,
       redirect_uri: FACEBOOK_REDIRECT_URI,
       scope: "email,public_profile",
       response_type: "code",
+      state,
     });
-    return NextResponse.redirect(
+    const response = NextResponse.redirect(
       `https://www.facebook.com/v19.0/dialog/oauth?${params.toString()}`
     );
+    response.cookies.set("oauth_state", state, {
+      path: "/",
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      maxAge: 600,
+    });
+    return response;
+  }
+
+  // Verify state parameter
+  const stateParam = searchParams.get("state");
+  const storedState = req.cookies.get("oauth_state")?.value;
+  if (!stateParam || !storedState || stateParam !== storedState) {
+    return NextResponse.redirect(new URL("/login?error=invalid_state", req.url));
   }
 
   try {
@@ -100,7 +118,7 @@ export async function GET(req: NextRequest) {
     });
 
     const redirectUrl = new URL("/auth/callback", req.url);
-    redirectUrl.searchParams.set("token", token);
+    redirectUrl.searchParams.set("provider", "facebook");
     redirectUrl.searchParams.set("customer", JSON.stringify({
       id: customer.id,
       email: customer.email,
@@ -111,13 +129,16 @@ export async function GET(req: NextRequest) {
     }));
 
     const response = NextResponse.redirect(redirectUrl);
-    // Set cookie server-side so middleware sees it immediately
+    // Set httpOnly cookie — token is NOT in the URL
     response.cookies.set("customer-token", token, {
       path: "/",
       maxAge: 7 * 24 * 60 * 60,
       sameSite: "lax",
-      httpOnly: false,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
     });
+    // Clear OAuth state cookie
+    response.cookies.delete("oauth_state");
     return response;
   } catch {
     return NextResponse.redirect(new URL("/login?error=facebook_error", req.url));

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAdminUser, unauthorized } from "@/lib/auth/api-guard";
 
 export async function GET(req: NextRequest) {
+  if (!getAdminUser(req)) return unauthorized();
   try {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
@@ -38,6 +40,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!getAdminUser(req)) return unauthorized();
   try {
     const data = await req.json();
     const supplier = await prisma.supplier.create({ data });

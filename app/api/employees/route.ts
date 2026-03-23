@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth";
+import { getAdminUser, unauthorized } from "@/lib/auth/api-guard";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!getAdminUser(req)) return unauthorized();
   try {
     const users = await prisma.user.findMany({
       select: { id: true, email: true, name: true, role: true, active: true, createdAt: true },
@@ -15,11 +17,22 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!getAdminUser(req)) return unauthorized();
   try {
     const { email, password, name, role } = await req.json();
 
     if (!email || !password || !name) {
       return NextResponse.json({ error: "Email, mot de passe et nom requis" }, { status: 400 });
+    }
+
+    if (password.length < 8) {
+      return NextResponse.json({ error: "Le mot de passe doit contenir au moins 8 caractères" }, { status: 400 });
+    }
+
+    // Validate role to prevent privilege escalation
+    const allowedRoles = ["seller", "admin"];
+    if (role && !allowedRoles.includes(role)) {
+      return NextResponse.json({ error: "Rôle invalide" }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({ where: { email } });

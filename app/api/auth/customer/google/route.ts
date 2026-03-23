@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateToken } from "@/lib/auth";
+import { randomBytes } from "crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,8 @@ export async function GET(req: NextRequest) {
   }
 
   if (!code) {
-    // Step 1: Redirect to Google OAuth consent screen
+    // Step 1: Redirect to Google OAuth consent screen with state for CSRF protection
+    const state = randomBytes(32).toString("hex");
     const params = new URLSearchParams({
       client_id: GOOGLE_CLIENT_ID,
       redirect_uri: GOOGLE_REDIRECT_URI,
@@ -32,10 +34,26 @@ export async function GET(req: NextRequest) {
       scope: "openid email profile",
       access_type: "offline",
       prompt: "select_account",
+      state,
     });
-    return NextResponse.redirect(
+    const response = NextResponse.redirect(
       `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
     );
+    response.cookies.set("oauth_state", state, {
+      path: "/",
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      maxAge: 600,
+    });
+    return response;
+  }
+
+  // Verify state parameter
+  const stateParam = searchParams.get("state");
+  const storedState = req.cookies.get("oauth_state")?.value;
+  if (!stateParam || !storedState || stateParam !== storedState) {
+    return redirectToAuth("invalid_state");
   }
 
   try {
@@ -113,9 +131,9 @@ export async function GET(req: NextRequest) {
       role: "customer",
     });
 
-    // Redirect to auth callback page that will store the token client-side
+    // Redirect to auth callback page — only pass non-sensitive customer data
     const redirectUrl = new URL("/auth/callback", BASE_URL);
-    redirectUrl.searchParams.set("token", token);
+    redirectUrl.searchParams.set("provider", "google");
     redirectUrl.searchParams.set("customer", JSON.stringify({
       id: customer.id,
       email: customer.email,
@@ -126,13 +144,16 @@ export async function GET(req: NextRequest) {
     }));
 
     const response = NextResponse.redirect(redirectUrl);
-    // Set cookie server-side so middleware sees it immediately
+    // Set httpOnly cookie — token is NOT in the URL
     response.cookies.set("customer-token", token, {
       path: "/",
       maxAge: 7 * 24 * 60 * 60,
       sameSite: "lax",
-      httpOnly: false,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
     });
+    // Clear OAuth state cookie
+    response.cookies.delete("oauth_state");
     return response;
   } catch (error) {
     console.error("[Google OAuth] Unexpected error:", error);

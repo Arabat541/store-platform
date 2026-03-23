@@ -1,7 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAdminUser, unauthorized } from "@/lib/auth/api-guard";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!getAdminUser(req)) return unauthorized();
   try {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);

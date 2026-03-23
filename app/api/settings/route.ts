@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAdminUser, unauthorized } from "@/lib/auth/api-guard";
 
 const ALLOWED_KEYS = [
   "store_name",
@@ -25,6 +26,7 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
+  if (!getAdminUser(req)) return unauthorized();
   try {
     const body = await req.json();
 

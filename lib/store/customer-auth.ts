@@ -32,7 +32,8 @@ export const useCustomerAuthStore = create<CustomerAuthStore>()(
       setHasHydrated: (v) => set({ _hasHydrated: v }),
       setAuth: (token, customer) => {
         set({ token, customer });
-        document.cookie = `customer-token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+        const secure = window.location.protocol === "https:" ? "; Secure" : "";
+        document.cookie = `customer-token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict${secure}`;
       },
       updateCustomer: (customer) => set({ customer }),
       logout: () => {

@@ -14,6 +14,13 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      if (password.length < 8) {
+        return NextResponse.json(
+          { error: "Le mot de passe doit contenir au moins 8 caractères" },
+          { status: 400 }
+        );
+      }
+
       const existing = await prisma.customer.findUnique({ where: { email } });
       if (existing) {
         return NextResponse.json(

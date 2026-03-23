@@ -15,14 +15,14 @@ function CallbackHandler() {
     // Guard against double execution (React Strict Mode)
     if (processed.current) return;
 
-    const token = searchParams.get("token");
     const customerParam = searchParams.get("customer");
 
-    if (token && customerParam) {
+    if (customerParam) {
       try {
         const customer = JSON.parse(customerParam);
         processed.current = true;
-        setAuth(token, customer);
+        // Token is in httpOnly cookie (set server-side), only store customer data
+        setAuth("cookie", customer);
         // Wait for Zustand persist to flush to localStorage before navigating
         setTimeout(() => {
           router.replace("/account");

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAdminUser, unauthorized } from "@/lib/auth/api-guard";
 
 export async function GET(
   _req: NextRequest,
@@ -30,6 +31,7 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  if (!getAdminUser(req)) return unauthorized();
   try {
     const id = parseInt(params.id);
     const data = await req.json();
@@ -64,6 +66,7 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  if (!getAdminUser(_req)) return unauthorized();
   try {
     const id = parseInt(params.id);
     await prisma.product.update({
