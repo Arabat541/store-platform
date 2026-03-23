@@ -1,12 +1,21 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
+async function getSettings() {
+  try {
+    const rows = await prisma.setting.findMany({
+      where: { key: { in: ["contact_email", "contact_phone", "contact_whatsapp", "contact_address"] } },
+    });
+    const settings: Record<string, string> = {};
+    for (const r of rows) settings[r.key] = r.value;
+    return settings;
+  } catch {
+    return {};
+  }
+}
+
 export default async function Footer() {
-  const rows = await prisma.setting.findMany({
-    where: { key: { in: ["contact_email", "contact_phone", "contact_whatsapp", "contact_address"] } },
-  });
-  const settings: Record<string, string> = {};
-  for (const r of rows) settings[r.key] = r.value;
+  const settings = await getSettings();
 
   const email = settings.contact_email || "contact@lalumieresoit.com";
   const phone = settings.contact_phone || "+225 00 000 000";  const whatsapp = settings.contact_whatsapp || "+225 00 000 000";  const address = settings.contact_address || "Abidjan, Côte d'Ivoire";
