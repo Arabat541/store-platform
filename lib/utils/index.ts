@@ -27,6 +27,12 @@ export function generateOrderNumber(): string {
   return `ORD-${timestamp}-${random}`;
 }
 
+export function generateSaleNumber(): string {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `VNT-${timestamp}-${random}`;
+}
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()

@@ -17,14 +17,14 @@ interface CartItem {
   quantity: number;
 }
 
-interface OrderData {
-  orderNumber: string;
+interface SaleData {
+  saleNumber: string;
   total: number;
   subtotal: number;
-  tax: number;
   paymentMethod: string;
+  customerName: string | null;
+  customerPhone: string | null;
   createdAt: string;
-  customer: { firstName: string; lastName: string; phone: string | null };
   items: { quantity: number; price: number; total: number; product: { name: string } }[];
 }
 
@@ -44,7 +44,7 @@ export default function AdminPOSPage() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [processing, setProcessing] = useState(false);
-  const [receipt, setReceipt] = useState<OrderData | null>(null);
+  const [receipt, setReceipt] = useState<SaleData | null>(null);
   const [storeSettings, setStoreSettings] = useState<StoreSettings>({});
   const receiptRef = useRef<HTMLDivElement>(null);
 
@@ -102,18 +102,12 @@ export default function AdminPOSPage() {
     if (cart.length === 0) return;
     setProcessing(true);
 
-    const customerEmail = `pos-${Date.now()}@boutique.local`;
-
-    const res = await fetch("/api/orders", {
+    const res = await fetch("/api/sales", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        customer: {
-          firstName: customerName || "Client",
-          lastName: "Boutique",
-          email: customerEmail,
-          phone: customerPhone || undefined,
-        },
+        customerName: customerName || null,
+        customerPhone: customerPhone || null,
         items: cart.map((i) => ({
           productId: i.product.id,
           quantity: i.quantity,
@@ -124,16 +118,16 @@ export default function AdminPOSPage() {
     });
 
     if (res.ok) {
-      const order = await res.json();
+      const sale = await res.json();
       setReceipt({
-        orderNumber: order.orderNumber,
-        total: Number(order.total),
-        subtotal: Number(order.subtotal),
-        tax: Number(order.tax),
-        paymentMethod: order.paymentMethod,
-        createdAt: order.createdAt,
-        customer: order.customer,
-        items: order.items.map((i: { quantity: number; price: string | number; total: string | number; product: { name: string } }) => ({
+        saleNumber: sale.saleNumber,
+        total: Number(sale.total),
+        subtotal: Number(sale.subtotal),
+        paymentMethod: sale.paymentMethod,
+        customerName: sale.customerName,
+        customerPhone: sale.customerPhone,
+        createdAt: sale.createdAt,
+        items: sale.items.map((i: { quantity: number; price: string | number; total: string | number; product: { name: string } }) => ({
           quantity: i.quantity,
           price: Number(i.price),
           total: Number(i.total),
@@ -205,12 +199,12 @@ export default function AdminPOSPage() {
               {storeSettings.contact_phone && <p>Tél: {storeSettings.contact_phone}</p>}
             </div>
             <div className="line"></div>
-            <div className="row"><span>Reçu N°:</span><span className="bold">{receipt.orderNumber}</span></div>
+            <div className="row"><span>Reçu N°:</span><span className="bold">{receipt.saleNumber}</span></div>
             <div className="row"><span>Date:</span><span>{receiptDate.toLocaleDateString("fr-FR")} {receiptDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span></div>
-            {receipt.customer.firstName !== "Client" && (
-              <div className="row"><span>Client:</span><span>{receipt.customer.firstName} {receipt.customer.lastName}</span></div>
+            {receipt.customerName && (
+              <div className="row"><span>Client:</span><span>{receipt.customerName}</span></div>
             )}
-            {receipt.customer.phone && <div className="row"><span>Tél:</span><span>{receipt.customer.phone}</span></div>}
+            {receipt.customerPhone && <div className="row"><span>Tél:</span><span>{receipt.customerPhone}</span></div>}
             <div className="row"><span>Paiement:</span><span>{paymentLabels[receipt.paymentMethod] || receipt.paymentMethod}</span></div>
             <div className="line"></div>
             {receipt.items.map((item, idx) => (
@@ -221,7 +215,6 @@ export default function AdminPOSPage() {
             ))}
             <div className="line"></div>
             <div className="row"><span>Sous-total:</span><span>{formatCurrency(receipt.subtotal)}</span></div>
-            {receipt.tax > 0 && <div className="row"><span>TVA:</span><span>{formatCurrency(receipt.tax)}</span></div>}
             <div className="line"></div>
             <div className="row total-row"><span>TOTAL:</span><span>{formatCurrency(receipt.total)}</span></div>
             <div className="line"></div>
@@ -235,7 +228,7 @@ export default function AdminPOSPage() {
           <div className="text-center mb-6">
             <span className="material-symbols-outlined text-6xl text-green-500 mb-2 block">check_circle</span>
             <h2 className="text-2xl font-bold text-slate-900">Vente enregistrée !</h2>
-            <p className="text-slate-500">Commande #{receipt.orderNumber}</p>
+            <p className="text-slate-500">Vente #{receipt.saleNumber}</p>
           </div>
 
           <div className="bg-slate-50 rounded-xl p-4 mb-4 space-y-2 text-sm">
@@ -243,10 +236,10 @@ export default function AdminPOSPage() {
               <span>Date</span>
               <span>{receiptDate.toLocaleDateString("fr-FR")} à {receiptDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>
             </div>
-            {receipt.customer.firstName !== "Client" && (
+            {receipt.customerName && (
               <div className="flex justify-between text-slate-600">
                 <span>Client</span>
-                <span>{receipt.customer.firstName} {receipt.customer.lastName}</span>
+                <span>{receipt.customerName}</span>
               </div>
             )}
             <div className="flex justify-between text-slate-600">
