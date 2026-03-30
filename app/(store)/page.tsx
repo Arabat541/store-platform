@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ProductCard from "@/components/product-card/ProductCard";
+import BannerCarousel from "@/components/banner-carousel/BannerCarousel";
 
 export const dynamic = "force-dynamic";
 
@@ -36,14 +37,39 @@ async function getCategories() {
   }
 }
 
+async function getActiveBanners() {
+  try {
+    const now = new Date();
+    return await prisma.banner.findMany({
+      where: {
+        active: true,
+        OR: [
+          { startDate: null, endDate: null },
+          { startDate: { lte: now }, endDate: null },
+          { startDate: null, endDate: { gte: now } },
+          { startDate: { lte: now }, endDate: { gte: now } },
+        ],
+      },
+      orderBy: { position: "asc" },
+      select: { id: true, title: true, subtitle: true, image: true, link: true },
+    });
+  } catch {
+    return [];
+  }
+}
+
 export default async function HomePage() {
-  const [products, categories] = await Promise.all([
+  const [products, categories, banners] = await Promise.all([
     getFeaturedProducts(),
     getCategories(),
+    getActiveBanners(),
   ]);
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+      {/* Banner Ads Carousel */}
+      {banners.length > 0 && <BannerCarousel banners={banners} />}
+
       {/* Hero Section */}
       <section className="relative rounded-3xl overflow-hidden min-h-[480px] flex items-center bg-gradient-to-r from-background-dark via-background-dark/80 to-primary/20">
         <div className="absolute inset-0 z-0">

@@ -10,6 +10,7 @@ const navigation = [
   { name: "Tableau de bord", href: "/admin/dashboard", icon: "dashboard" },
   { name: "Vente en boutique", href: "/admin/pos", icon: "point_of_sale" },
   { name: "Produits", href: "/admin/products", icon: "inventory_2" },
+  { name: "Bannières", href: "/admin/banners", icon: "campaign" },
   { name: "Commandes", href: "/admin/orders", icon: "shopping_bag" },
   { name: "Clients", href: "/admin/customers", icon: "group" },
   { name: "Inventaire", href: "/admin/inventory", icon: "warehouse" },
