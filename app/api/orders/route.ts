@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateOrderNumber } from "@/lib/utils";
 import { getAdminUser, unauthorized } from "@/lib/auth/api-guard";
+import { sendOrderWhatsApp } from "@/lib/whatsapp";
 
 export async function GET(req: NextRequest) {
   if (!getAdminUser(req)) return unauthorized();
@@ -127,6 +128,15 @@ export async function POST(req: NextRequest) {
         },
       });
     }
+
+    // Send WhatsApp notification (non-blocking)
+    sendOrderWhatsApp({
+      orderNumber: order.orderNumber,
+      customerName: `${customer.firstName} ${customer.lastName}`,
+      total,
+      itemCount: orderItems.length,
+      paymentMethod: data.paymentMethod,
+    }).catch(() => {});
 
     return NextResponse.json(order, { status: 201 });
   } catch {

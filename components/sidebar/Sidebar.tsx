@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/store/auth";
+import NotificationBell from "@/components/notification-bell/NotificationBell";
 
 const navigation = [
   { name: "Tableau de bord", href: "/admin/dashboard", icon: "dashboard" },
@@ -28,7 +29,7 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-background-dark text-slate-100 min-h-screen flex flex-col">
       {/* Logo */}
-      <div className="p-6">
+      <div className="p-6 flex items-center justify-between">
         <Link href="/admin/dashboard" className="flex items-center gap-3">
           <Image src="/logo.png" alt="La Lumière Soit" width={36} height={36} className="rounded-lg" />
           <div>
@@ -36,6 +37,7 @@ export default function Sidebar() {
             <span className="block text-xs text-slate-500">Panneau Admin</span>
           </div>
         </Link>
+        <NotificationBell />
       </div>
 
       {/* Nav */}
