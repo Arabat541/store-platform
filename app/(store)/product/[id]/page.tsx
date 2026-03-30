@@ -163,7 +163,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             {product.stock > 0 ? (
               <span className="inline-flex items-center gap-1.5 text-sm text-green-600 font-medium">
                 <span className="material-symbols-outlined text-lg">check_circle</span>
-                En stock ({product.stock} available)
+                En stock ({product.stock} disponibles)
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 text-sm text-red-600 font-medium">

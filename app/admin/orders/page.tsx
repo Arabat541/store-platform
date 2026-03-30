@@ -45,7 +45,7 @@ export default function AdminOrdersPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
           <span className="material-symbols-outlined text-primary">shopping_bag</span>
-          Orders
+          Commandes
         </h1>
       </div>
 
@@ -54,7 +54,7 @@ export default function AdminOrdersPage() {
           { key: "orderNumber", header: "Commande #" },
           {
             key: "customer",
-            header: "Customer",
+            header: "Client",
             render: (item) => {
               const o = item as unknown as Order;
               return `${o.customer.firstName} ${o.customer.lastName}`;
@@ -70,7 +70,7 @@ export default function AdminOrdersPage() {
           },
           {
             key: "status",
-            header: "Status",
+            header: "Statut",
             render: (item) => {
               const o = item as unknown as Order;
               return <StatusBadge status={o.status} />;
@@ -78,7 +78,7 @@ export default function AdminOrdersPage() {
           },
           {
             key: "paymentStatus",
-            header: "Payment",
+            header: "Paiement",
             render: (item) => {
               const o = item as unknown as Order;
               return <StatusBadge status={o.paymentStatus} />;
@@ -104,7 +104,7 @@ export default function AdminOrdersPage() {
           <div className="relative bg-white rounded-2xl shadow-2xl shadow-primary/10 w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 m-4">
             <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">receipt_long</span>
-              Order {selectedOrder.orderNumber}
+              Commande {selectedOrder.orderNumber}
             </h2>
 
             <div className="space-y-4">
@@ -117,7 +117,7 @@ export default function AdminOrdersPage() {
               </div>
 
               <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">Items</p>
+                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">Articles</p>
                 <div className="bg-slate-50 rounded-xl p-4">
                   {selectedOrder.items.map((item, idx) => (
                     <div key={idx} className="flex justify-between text-sm py-1.5">
@@ -133,19 +133,25 @@ export default function AdminOrdersPage() {
               </div>
 
               <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">Update Status</p>
+                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">Mettre à jour le statut</p>
                 <div className="flex flex-wrap gap-2">
-                  {["pending", "confirmed", "shipped", "completed", "cancelled"].map((s) => (
+                  {[
+                    { value: "pending", label: "En attente" },
+                    { value: "confirmed", label: "Confirmée" },
+                    { value: "shipped", label: "Expédiée" },
+                    { value: "completed", label: "Livrée" },
+                    { value: "cancelled", label: "Annulée" },
+                  ].map((s) => (
                     <button
-                      key={s}
-                      onClick={() => updateStatus(selectedOrder.id, s)}
-                      className={`px-3 py-1.5 text-xs rounded-lg border capitalize font-medium transition-all ${
-                        selectedOrder.status === s
+                      key={s.value}
+                      onClick={() => updateStatus(selectedOrder.id, s.value)}
+                      className={`px-3 py-1.5 text-xs rounded-lg border font-medium transition-all ${
+                        selectedOrder.status === s.value
                           ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
                           : "border-slate-200 hover:bg-slate-50 hover:border-primary/30 hover:text-primary"
                       }`}
                     >
-                      {s}
+                      {s.label}
                     </button>
                   ))}
                 </div>
@@ -156,7 +162,7 @@ export default function AdminOrdersPage() {
               onClick={() => setSelectedOrder(null)}
               className="mt-6 w-full text-center py-2.5 border border-slate-200 rounded-xl hover:bg-slate-50 text-sm font-medium transition-colors"
             >
-              Close
+              Fermer
             </button>
           </div>
         </div>

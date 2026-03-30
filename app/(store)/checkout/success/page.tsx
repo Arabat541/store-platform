@@ -5,10 +5,10 @@ export default function CheckoutSuccessPage() {
     <div className="max-w-lg mx-auto px-6 py-20 text-center">
       <span className="material-symbols-outlined text-6xl text-green-500">check_circle</span>
       <h1 className="text-2xl font-bold text-slate-900 mt-6">
-        Order Placed Successfully!
+        Commande passée avec succès !
       </h1>
       <p className="text-slate-500 mt-3">
-        Thank you for your order. We&apos;ll contact you with shipping details shortly.
+        Merci pour votre commande. Nous vous contacterons bientôt avec les détails de livraison.
       </p>
       <Link
         href="/products"

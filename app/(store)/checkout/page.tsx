@@ -68,13 +68,13 @@ export default function CheckoutPage() {
       <div className="max-w-4xl mx-auto px-6 py-20 text-center">
         <span className="material-symbols-outlined text-6xl text-slate-300 mb-4 block">shopping_cart</span>
         <h1 className="text-2xl font-bold text-slate-900 mb-3">
-          Your cart is empty
+          Votre panier est vide
         </h1>
         <Link
           href="/products"
           className="text-primary hover:text-primary/80 font-medium transition-colors"
         >
-          Continue shopping
+          Continuer les achats
         </Link>
       </div>
     );
@@ -139,7 +139,7 @@ export default function CheckoutPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Phone
+                  Téléphone
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">phone</span>
@@ -163,7 +163,7 @@ export default function CheckoutPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Address *
+                Adresse *
               </label>
               <textarea
                 name="address"
@@ -177,7 +177,7 @@ export default function CheckoutPage() {
 
             <div className="mt-4">
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                City *
+                Ville *
               </label>
               <input
                 name="city"
@@ -192,7 +192,7 @@ export default function CheckoutPage() {
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">payments</span>
-              Payment
+              Paiement
             </h3>
 
             <div>
@@ -270,7 +270,7 @@ export default function CheckoutPage() {
             </button>
             <p className="text-xs text-slate-400 text-center mt-3 flex items-center justify-center gap-1">
               <span className="material-symbols-outlined text-sm">verified_user</span>
-              Secure checkout
+              Paiement sécurisé
             </p>
           </div>
         </div>

@@ -118,6 +118,17 @@ interface StatusBadgeProps {
   colors?: Record<string, string>;
 }
 
+const statusLabels: Record<string, string> = {
+  pending: "En attente",
+  confirmed: "Confirmée",
+  shipped: "Expédiée",
+  completed: "Livrée",
+  cancelled: "Annulée",
+  paid: "Payé",
+  unpaid: "Impayé",
+  refunded: "Remboursé",
+};
+
 export function StatusBadge({ status, colors }: StatusBadgeProps) {
   const defaultColors: Record<string, string> = {
     pending: "bg-amber-50 text-amber-700 border border-amber-200",
@@ -127,6 +138,7 @@ export function StatusBadge({ status, colors }: StatusBadgeProps) {
     cancelled: "bg-red-50 text-red-700 border border-red-200",
     paid: "bg-emerald-50 text-emerald-700 border border-emerald-200",
     unpaid: "bg-red-50 text-red-700 border border-red-200",
+    refunded: "bg-slate-50 text-slate-700 border border-slate-200",
   };
 
   const colorMap = colors || defaultColors;
@@ -134,11 +146,11 @@ export function StatusBadge({ status, colors }: StatusBadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize",
+        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold",
         colorMap[status] || "bg-slate-50 text-slate-700 border border-slate-200"
       )}
     >
-      {status}
+      {statusLabels[status] || status}
     </span>
   );
 }

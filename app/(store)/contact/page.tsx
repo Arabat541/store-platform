@@ -107,10 +107,10 @@ export default function ContactPage() {
             <div className="text-center py-8">
               <span className="material-symbols-outlined text-5xl text-green-500 mb-3 block">check_circle</span>
               <h3 className="text-lg font-bold text-green-600">
-                Message Sent!
+                Message envoyé !
               </h3>
               <p className="text-slate-500 mt-2">
-                We&apos;ll get back to you shortly.
+                Nous vous répondrons dans les plus brefs délais.
               </p>
               <button
                 onClick={() => {
@@ -126,7 +126,7 @@ export default function ContactPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Name *
+                  Nom *
                 </label>
                 <input
                   name="name"
@@ -151,7 +151,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Subject *
+                  Sujet *
                 </label>
                 <input
                   name="subject"
